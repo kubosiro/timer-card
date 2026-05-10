@@ -24,7 +24,7 @@ def websocket_get_version(hass, connection, msg):
     import json
     import os
     manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-    version = "2.4.6"
+    version = "2.4.7"
     try:
         with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
@@ -179,7 +179,7 @@ async def _async_register_resource(hass: HomeAssistant):
     import json
     import os
     manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-    version = "2.4.6"
+    version = "2.4.7"
     try:
         with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
