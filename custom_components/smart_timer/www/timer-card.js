@@ -201,6 +201,13 @@ class SmartTimerCard extends HTMLElement {
             color: var(--timer-text);
             box-shadow: 0 2px 8px rgba(33,150,243,0.15);
           }
+          .preset:active {
+            transform: scale(0.96);
+            background: rgba(255,255,255,0.12);
+          }
+          .icon-container:active {
+            transform: scale(0.92);
+          }
     
           @keyframes spin {
             from { transform: rotate(0deg); }
@@ -249,21 +256,6 @@ class SmartTimerCard extends HTMLElement {
     const masterSensor = this._hass.states['sensor.smart_timer_master'];
     const timers = (masterSensor && masterSensor.attributes.timers) || {};
     const timerInfo = timers[entityId];
-
-    if (!timerInfo && masterSensor) {
-      // If master sensor exists but no timer info for this entity, 
-      // it means the integration hasn't been configured for this device yet.
-      this.content.innerHTML = `
-        <div style="padding: 16px; text-align: center; background: rgba(255,152,0,0.1); border-radius: 12px; border: 1px solid rgba(255,152,0,0.2);">
-          <ha-icon icon="mdi:alert-circle-outline" style="color: #ff9800; --mdc-icon-size: 32px;"></ha-icon>
-          <div style="font-weight: bold; margin-top: 8px; color: var(--primary-text-color);">Chưa cấu hình Integration</div>
-          <div style="font-size: 12px; margin-top: 4px; color: var(--secondary-text-color);">
-            Anh cần vào <b>Cài đặt -> Tích hợp</b> để thêm <b>Smart Timer</b> cho thực thể này trước nhé.
-          </div>
-        </div>
-      `;
-      return;
-    }
 
     const isOn = stateObj.state === 'on';
     const name = this.config.name || stateObj.attributes.friendly_name || entityId;
@@ -316,7 +308,7 @@ class SmartTimerCard extends HTMLElement {
           <span class="btn-val">-1</span>
         </div>
         <div class="btn center ${timerInfo ? 'active' : ''}" id="clear">
-          <ha-icon icon="${timerInfo ? 'mdi:timer-sand' : 'mdi:timer-off-outline'}"></ha-icon>
+          <ha-icon icon="mdi:timer-off-outline"></ha-icon>
         </div>
         <div class="btn plus-1" data-val="1">
           <ha-icon icon="mdi:plus"></ha-icon>
@@ -333,10 +325,10 @@ class SmartTimerCard extends HTMLElement {
       </div>
 
       <div class="presets">
-        <div class="preset ${this._isClose(remainingMinutes, 30) ? 'active' : ''}" data-preset="30">30p</div>
         <div class="preset ${this._isClose(remainingMinutes, 60) ? 'active' : ''}" data-preset="60">1h</div>
         <div class="preset ${this._isClose(remainingMinutes, 120) ? 'active' : ''}" data-preset="120">2h</div>
         <div class="preset ${this._isClose(remainingMinutes, 240) ? 'active' : ''}" data-preset="240">4h</div>
+        <div class="preset ${this._isClose(remainingMinutes, 360) ? 'active' : ''}" data-preset="360">6h</div>
         <div class="preset ${this._isClose(remainingMinutes, 480) ? 'active' : ''}" data-preset="480">8h</div>
       </div>
     `;
@@ -349,8 +341,15 @@ class SmartTimerCard extends HTMLElement {
   }
 
   _bindEvents(entityId, currentRemaining) {
+    // Khu vực Icon/Text: Chỉ Bật/Tắt thiết bị
     this.shadowRoot.querySelector('#toggle').onclick = () => {
       this._hass.callService('homeassistant', 'toggle', { entity_id: entityId });
+    };
+
+    // Nút tròn ở giữa: Chỉ Clear Countdown
+    this.shadowRoot.querySelector('#clear').onclick = (e) => {
+      e.stopPropagation();
+      this._callTimerSet(entityId, 0);
     };
 
     this.shadowRoot.querySelectorAll('.btn[data-val]').forEach(btn => {
@@ -361,11 +360,6 @@ class SmartTimerCard extends HTMLElement {
         this._callTimerSet(entityId, newDuration);
       };
     });
-
-    this.shadowRoot.querySelector('#clear').onclick = (e) => {
-      e.stopPropagation();
-      this._callTimerSet(entityId, 0);
-    };
 
     this.shadowRoot.querySelectorAll('.preset').forEach(btn => {
       btn.onclick = (e) => {
@@ -408,43 +402,45 @@ class SmartTimerCardEditor extends HTMLElement {
   _render() {
     if (!this.shadowRoot) return;
     
-    // Create base structure
     this.shadowRoot.innerHTML = `
       <style>
-        .card-config { padding: 4px; }
-        .option { margin-bottom: 20px; display: flex; flex-direction: column; }
-        label { font-weight: bold; margin-bottom: 10px; font-size: 14px; color: var(--primary-text-color); display: block; }
-        .help { font-size: 12px; color: var(--secondary-text-color); margin-top: 6px; }
-        ha-entity-picker, ha-icon-picker { width: 100%; display: block; }
-        .ha-input {
+        .card-config { padding: 10px; font-family: sans-serif; }
+        .option { margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-bottom: 10px; font-size: 14px; color: var(--primary-text-color, #fff); }
+        .help { font-size: 12px; color: var(--secondary-text-color, #aaa); margin-top: 5px; }
+        
+        /* Input chuẩn, tương phản cao để chắc chắn nhìn thấy */
+        input#name-input {
           width: 100%;
           padding: 12px;
+          background: #333;
+          color: white;
+          border: 1px solid #666;
           border-radius: 4px;
-          border: 1px solid var(--divider-color, #444);
-          background: var(--card-background-color, #2c2c2c);
-          color: var(--primary-text-color, white);
           box-sizing: border-box;
           font-size: 14px;
         }
-        .ha-input:focus {
+        input#name-input:focus {
+          border-color: #03a9f4;
           outline: none;
-          border-color: var(--primary-color, #03a9f4);
         }
+        ha-entity-picker, ha-icon-picker { width: 100%; display: block; }
       </style>
       <div class="card-config">
         <div class="option">
-          <label>Chọn thực thể điều khiển</label>
+          <label>1. Chọn thực thể điều khiển</label>
           <ha-entity-picker id="entity-picker" allow-custom-entity></ha-entity-picker>
-          <div class="help">Anh chọn switch vật lý ở đây nhé.</div>
+          <div class="help">Chọn thiết bị anh muốn hẹn giờ (Switch/Light/Fan).</div>
         </div>
         
         <div class="option">
-          <label>Tên hiển thị trên Card</label>
-          <input type="text" id="name-input" class="ha-input" placeholder="Ví dụ: Quạt treo tường">
+          <label>2. Tên hiển thị trên Card</label>
+          <input type="text" id="name-input" placeholder="Ví dụ: Đèn phòng khách">
+          <div class="help">Đặt tên để dễ phân biệt trên giao diện.</div>
         </div>
 
         <div class="option">
-          <label>Biểu tượng (Icon)</label>
+          <label>3. Biểu tượng (Icon)</label>
           <ha-icon-picker id="icon-picker"></ha-icon-picker>
         </div>
       </div>

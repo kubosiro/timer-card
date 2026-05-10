@@ -1,0 +1,18 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Thêm Hẹn giờ thông minh",
+        "description": "Cấu hình bộ hẹn giờ mới cho thiết bị của bạn.",
+        "data": {
+          "entity_id": "Thực thể điều khiển",
+          "name": "Tên hiển thị"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Thiết bị này đã được cấu hình bộ hẹn giờ rồi."
+    }
+  },
+  "title": "Hẹn giờ thông minh"
+}

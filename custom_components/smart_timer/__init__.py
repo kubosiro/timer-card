@@ -145,6 +145,11 @@ async def async_setup_entry(hass: HomeAssistant, entry):
 
     return True
 
+async def async_unload_entry(hass: HomeAssistant, entry):
+    """Unload a config entry."""
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, ["sensor"])
+    return unload_ok
+
 async def _async_register_resource(hass):
     """Register the Lovelace resource automatically."""
     url = "/smart_timer/static/timer-card.js"

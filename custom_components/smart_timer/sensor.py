@@ -33,6 +33,17 @@ class SmartTimerSensor(SensorEntity):
         self._attr_icon = "mdi:timer-outline"
 
     @property
+    def device_info(self):
+        """Link sensor to the integration device."""
+        return {
+            "identifiers": {(DOMAIN, self._entry.entry_id)},
+            "name": self._entry.title,
+            "manufacturer": "Antigravity Pro",
+            "model": "Smart Timer Entity",
+            "sw_version": "2.3.0",
+        }
+
+    @property
     def state(self):
         """Return active if the target entity has an active timer."""
         active_timers = self._hass.data[DOMAIN].get("active_timers", {})
@@ -68,6 +79,16 @@ class TimerMasterSensor(SensorEntity):
         self._attr_name = "Smart Timer Master"
         self._attr_unique_id = "smart_timer_master"
         self._attr_icon = "mdi:timer-off-outline"
+
+    @property
+    def device_info(self):
+        """Link master sensor to a global integration device."""
+        return {
+            "identifiers": {(DOMAIN, "master")},
+            "name": "Smart Timer System",
+            "manufacturer": "Antigravity Pro",
+            "model": "Core Logic",
+        }
 
     @property
     def state(self):
