@@ -403,35 +403,36 @@ class SmartTimerCardEditor extends HTMLElement {
       <div class="card-config">
         <div class="option">
           <label>Chọn thực thể điều khiển</label>
-          <ha-entity-picker
-            .hass=${this._hass}
-            .value=${this._config.entity}
-            .includeDomains=${['switch', 'light', 'fan']}
-            @value-changed=${(ev) => this._fieldChanged(ev, 'entity')}
-            allow-custom-entity
-          ></ha-entity-picker>
+          <ha-entity-picker id="entity-picker" allow-custom-entity></ha-entity-picker>
           <div class="help">Hỗ trợ các thiết bị loại Switch, Light hoặc Fan.</div>
         </div>
         
         <div class="option">
           <label>Tên hiển thị trên Card</label>
-          <ha-textfield
-            .value=${this._config.name || ''}
-            @input=${(ev) => this._fieldChanged(ev, 'name')}
-            placeholder="Ví dụ: Quạt treo tường"
-          ></ha-textfield>
+          <ha-textfield id="name-input" placeholder="Ví dụ: Quạt treo tường"></ha-textfield>
         </div>
 
         <div class="option">
           <label>Biểu tượng (Icon)</label>
-          <ha-icon-picker
-            .hass=${this._hass}
-            .value=${this._config.icon}
-            @value-changed=${(ev) => this._fieldChanged(ev, 'icon')}
-          ></ha-icon-picker>
+          <ha-icon-picker id="icon-picker"></ha-icon-picker>
         </div>
       </div>
     `;
+
+    const entityPicker = this.shadowRoot.querySelector('#entity-picker');
+    entityPicker.hass = this._hass;
+    entityPicker.value = this._config.entity;
+    entityPicker.includeDomains = ['switch', 'light', 'fan'];
+    entityPicker.addEventListener('value-changed', (ev) => this._fieldChanged(ev, 'entity'));
+
+    const nameInput = this.shadowRoot.querySelector('#name-input');
+    nameInput.value = this._config.name || '';
+    nameInput.addEventListener('input', (ev) => this._fieldChanged(ev, 'name'));
+
+    const iconPicker = this.shadowRoot.querySelector('#icon-picker');
+    iconPicker.hass = this._hass;
+    iconPicker.value = this._config.icon;
+    iconPicker.addEventListener('value-changed', (ev) => this._fieldChanged(ev, 'icon'));
   }
 
   _fieldChanged(ev, field) {
