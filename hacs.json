@@ -1,0 +1,7 @@
+{
+  "name": "Smart Timer",
+  "content_type": "integration",
+  "domains": ["smart_timer"],
+  "iot_class": "local_push",
+  "render_readme": true
+}
