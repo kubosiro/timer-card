@@ -3,12 +3,14 @@
  * A premium timer card for Home Assistant
  */
 
+console.log("%c ⏱️ SMART TIMER CARD: SCRIPT START ", "background: #2196f3; color: white; font-weight: bold; padding: 4px; border-radius: 4px;");
+
 window.customCards = window.customCards || [];
 if (!window.customCards.find(c => c.type === 'smart-timer-card')) {
   window.customCards.push({
     type: 'smart-timer-card',
-    name: 'Smart Timer Card',
-    description: 'Hẹn giờ thông minh cho bất kỳ thiết bị nào, không cần biến trợ giúp.',
+    name: 'Smart Timer Card (Pro)',
+    description: 'Hẹn giờ thông minh cho mọi thiết bị, giao diện hiện đại.',
     preview: true,
     documentationURL: 'https://github.com/kubosiro/timer-card',
   });
