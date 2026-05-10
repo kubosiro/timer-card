@@ -250,6 +250,21 @@ class SmartTimerCard extends HTMLElement {
     const timers = (masterSensor && masterSensor.attributes.timers) || {};
     const timerInfo = timers[entityId];
 
+    if (!timerInfo && masterSensor) {
+      // If master sensor exists but no timer info for this entity, 
+      // it means the integration hasn't been configured for this device yet.
+      this.content.innerHTML = `
+        <div style="padding: 16px; text-align: center; background: rgba(255,152,0,0.1); border-radius: 12px; border: 1px solid rgba(255,152,0,0.2);">
+          <ha-icon icon="mdi:alert-circle-outline" style="color: #ff9800; --mdc-icon-size: 32px;"></ha-icon>
+          <div style="font-weight: bold; margin-top: 8px; color: var(--primary-text-color);">Chưa cấu hình Integration</div>
+          <div style="font-size: 12px; margin-top: 4px; color: var(--secondary-text-color);">
+            Anh cần vào <b>Cài đặt -> Tích hợp</b> để thêm <b>Smart Timer</b> cho thực thể này trước nhé.
+          </div>
+        </div>
+      `;
+      return;
+    }
+
     const isOn = stateObj.state === 'on';
     const name = this.config.name || stateObj.attributes.friendly_name || entityId;
     const icon = this.config.icon || stateObj.attributes.icon || 'mdi:power';
@@ -392,6 +407,8 @@ class SmartTimerCardEditor extends HTMLElement {
 
   _render() {
     if (!this.shadowRoot) return;
+    
+    // Create base structure
     this.shadowRoot.innerHTML = `
       <style>
         .card-config { padding: 4px; }
@@ -404,12 +421,12 @@ class SmartTimerCardEditor extends HTMLElement {
         <div class="option">
           <label>Chọn thực thể điều khiển</label>
           <ha-entity-picker id="entity-picker" allow-custom-entity></ha-entity-picker>
-          <div class="help">Hỗ trợ các thiết bị loại Switch, Light hoặc Fan.</div>
+          <div class="help">Anh chọn switch vật lý ở đây nhé.</div>
         </div>
         
         <div class="option">
           <label>Tên hiển thị trên Card</label>
-          <ha-textfield id="name-input" placeholder="Ví dụ: Quạt treo tường"></ha-textfield>
+          <ha-textfield id="name-input" label="Tên thiết bị" placeholder="Ví dụ: Quạt treo tường"></ha-textfield>
         </div>
 
         <div class="option">
@@ -420,19 +437,25 @@ class SmartTimerCardEditor extends HTMLElement {
     `;
 
     const entityPicker = this.shadowRoot.querySelector('#entity-picker');
-    entityPicker.hass = this._hass;
-    entityPicker.value = this._config.entity;
-    entityPicker.includeDomains = ['switch', 'light', 'fan'];
-    entityPicker.addEventListener('value-changed', (ev) => this._fieldChanged(ev, 'entity'));
+    if (entityPicker) {
+      entityPicker.hass = this._hass;
+      entityPicker.value = this._config.entity;
+      entityPicker.includeDomains = ['switch', 'light', 'fan', 'input_boolean'];
+      entityPicker.addEventListener('value-changed', (ev) => this._fieldChanged(ev, 'entity'));
+    }
 
     const nameInput = this.shadowRoot.querySelector('#name-input');
-    nameInput.value = this._config.name || '';
-    nameInput.addEventListener('input', (ev) => this._fieldChanged(ev, 'name'));
+    if (nameInput) {
+      nameInput.value = this._config.name || '';
+      nameInput.addEventListener('input', (ev) => this._fieldChanged(ev, 'name'));
+    }
 
     const iconPicker = this.shadowRoot.querySelector('#icon-picker');
-    iconPicker.hass = this._hass;
-    iconPicker.value = this._config.icon;
-    iconPicker.addEventListener('value-changed', (ev) => this._fieldChanged(ev, 'icon'));
+    if (iconPicker) {
+      iconPicker.hass = this._hass;
+      iconPicker.value = this._config.icon;
+      iconPicker.addEventListener('value-changed', (ev) => this._fieldChanged(ev, 'icon'));
+    }
   }
 
   _fieldChanged(ev, field) {
