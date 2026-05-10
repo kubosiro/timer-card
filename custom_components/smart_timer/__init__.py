@@ -21,16 +21,8 @@ STORAGE_VERSION = 1
 @callback
 def websocket_get_version(hass, connection, msg):
     """Return the version of the integration."""
-    import json
-    import os
-    manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-    version = "2.5.0"
-    try:
-        with open(manifest_path, "r", encoding="utf-8") as f:
-            manifest = json.load(f)
-            version = manifest.get("version", version)
-    except:
-        pass
+    integration = hass.data.get("integrations", {}).get(DOMAIN)
+    version = integration.version if integration else "2.5.0"
     connection.send_result(msg["id"], {"version": version})
 
 SERVICE_SET_SCHEMA = vol.Schema({
@@ -175,17 +167,8 @@ async def _async_register_resource(hass: HomeAssistant):
     """Register the Lovelace resource automatically with maximum robustness."""
     from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
     
-    # URL và Version
-    import json
-    import os
-    manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-    version = "2.5.0"
-    try:
-        with open(manifest_path, "r", encoding="utf-8") as f:
-            manifest = json.load(f)
-            version = manifest.get("version", version)
-    except:
-        pass
+    integration = hass.data.get("integrations", {}).get(DOMAIN)
+    version = integration.version if integration else "2.5.0"
         
     url = f"/smart_timer/static/timer-card.js?v={version}"
     base_url = "/smart_timer/static/timer-card.js"
