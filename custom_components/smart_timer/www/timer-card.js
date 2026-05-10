@@ -10,10 +10,30 @@ if (!window.customCards.find(c => c.type === 'smart-timer-card')) {
     name: 'Smart Timer Card',
     description: 'Hẹn giờ thông minh cho bất kỳ thiết bị nào, không cần biến trợ giúp.',
     preview: true,
+    documentationURL: 'https://github.com/kubosiro/timer-card',
   });
 }
 
 class SmartTimerCard extends HTMLElement {
+  setConfig(config) {
+    if (!config.entity) {
+      throw new Error("Please define an entity");
+    }
+    this._config = config;
+  }
+
+  static getStubConfig() {
+    return {
+      entity: "",
+      name: "Smart Timer",
+      icon: "mdi:timer-outline"
+    };
+  }
+
+  static getConfigElement() {
+    return document.createElement("smart-timer-card-editor");
+  }
+
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -354,4 +374,89 @@ class SmartTimerCard extends HTMLElement {
 }
 
 customElements.define('smart-timer-card', SmartTimerCard);
+
+class SmartTimerCardEditor extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+  }
+
+  setConfig(config) {
+    this._config = config;
+    this._render();
+  }
+
+  _render() {
+    if (!this.shadowRoot) return;
+    this.shadowRoot.innerHTML = `
+      <style>
+        .card-config {
+          padding: 16px;
+        }
+        .option {
+          margin-bottom: 16px;
+          display: flex;
+          flex-direction: column;
+        }
+        label {
+          font-weight: bold;
+          margin-bottom: 8px;
+          font-size: 14px;
+        }
+        input, select {
+          padding: 10px;
+          border-radius: 8px;
+          border: 1px solid var(--divider-color, #e0e0e0);
+          background: var(--card-background-color, white);
+          color: var(--primary-text-color, black);
+        }
+        .help {
+          font-size: 12px;
+          color: var(--secondary-text-color, gray);
+          margin-top: 4px;
+        }
+      </style>
+      <div class="card-config">
+        <div class="option">
+          <label>Entity (Switch/Light/Fan)</label>
+          <input id="entity" type="text" value="${this._config.entity || ''}" placeholder="switch.your_device">
+          <div class="help">Thực thể mà bạn muốn điều khiển hẹn giờ.</div>
+        </div>
+        <div class="option">
+          <label>Friendly Name</label>
+          <input id="name" type="text" value="${this._config.name || ''}" placeholder="Tên thiết bị">
+        </div>
+        <div class="option">
+          <label>Icon (Optional)</label>
+          <input id="icon" type="text" value="${this._config.icon || ''}" placeholder="mdi:fan">
+        </div>
+      </div>
+    `;
+
+    this.shadowRoot.querySelectorAll('input').forEach(input => {
+      input.onchange = (e) => this._valueChanged(e);
+    });
+  }
+
+  _valueChanged(ev) {
+    if (!this._config) return;
+    const target = ev.target;
+    const value = target.value;
+    const newConfig = { ...this._config, [target.id]: value };
+    
+    const event = new CustomEvent("config-changed", {
+      detail: { config: newConfig },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+  }
+}
+
+customElements.define('smart-timer-card-editor', SmartTimerCardEditor);
+
 console.log("%c ⏱️ SMART TIMER CARD LOADED ", "background: #2196f3; color: white; font-weight: bold; padding: 4px; border-radius: 4px;");

@@ -147,19 +147,31 @@ async def async_setup_entry(hass: HomeAssistant, entry):
 
 async def _async_register_resource(hass):
     """Register the Lovelace resource automatically."""
+    url = "/smart_timer/static/timer-card.js"
+    _LOGGER.debug("Attempting to register Lovelace resource: %s", url)
+    
     try:
-        resources = hass.data.get("lovelace", {}).get("resources")
+        # Get the resources from the correct location for the current HA version
+        resources = None
+        if "lovelace" in hass.data:
+            resources = hass.data["lovelace"].get("resources")
+        
         if resources:
-            if not hasattr(resources, "async_items"):
-                return
-                
-            url = "/smart_timer/static/timer-card.js"
-            # Check if already registered
-            for res in resources.async_items():
-                if res.get("url") == url:
-                    return
-
-            await resources.async_create_item({"res_type": "module", "url": url})
-            _LOGGER.info("Registered Lovelace resource: %s", url)
+            # Check if it's already there
+            exists = False
+            if hasattr(resources, "async_items"):
+                for res in resources.async_items():
+                    if res.get("url") == url:
+                        exists = True
+                        break
+            
+            if not exists:
+                if hasattr(resources, "async_create_item"):
+                    await resources.async_create_item({"res_type": "module", "url": url})
+                    _LOGGER.info("Registered Lovelace resource: %s", url)
+                else:
+                    _LOGGER.warning("Lovelace resources found but 'async_create_item' is missing. Manual registration required.")
+        else:
+            _LOGGER.debug("Lovelace resources not found in hass.data. This is normal in YAML mode or early startup.")
     except Exception as e:
-        _LOGGER.debug("Could not auto-register resource: %s", e)
+        _LOGGER.error("Error auto-registering Lovelace resource: %s", e)
