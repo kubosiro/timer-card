@@ -43,7 +43,8 @@ async def async_setup_entry(hass: HomeAssistant, entry):
             "active_timers": {},
             "store": Store(hass, STORAGE_VERSION, STORAGE_KEY),
             "listeners": {},
-            "initialized": False
+            "initialized": False,
+            "master_sensor_added": False
         }
     
     data = hass.data[DOMAIN]
@@ -161,6 +162,13 @@ async def async_setup_entry(hass: HomeAssistant, entry):
 async def async_unload_entry(hass: HomeAssistant, entry):
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, ["sensor"])
+    
+    # If this was the last entry, reset the master_sensor_added flag
+    if unload_ok and DOMAIN in hass.data:
+        entries = hass.config_entries.async_entries(DOMAIN)
+        if not entries:
+            hass.data[DOMAIN]["master_sensor_added"] = False
+            
     return unload_ok
 
 async def _async_register_resource(hass: HomeAssistant):
