@@ -3,7 +3,7 @@
  * A premium timer card for Home Assistant
  */
 
-console.log("%c ⏱️ SMART TIMER CARD: v2.4.8 LOADED ", "background: #2196f3; color: white; font-weight: bold; padding: 4px; border-radius: 4px;");
+console.log("%c ⏱️ SMART TIMER CARD: v2.4.9 LOADED ", "background: #2196f3; color: white; font-weight: bold; padding: 4px; border-radius: 4px;");
 
 window.customCards = window.customCards || [];
 if (!window.customCards.find(c => c.type === 'smart-timer-card')) {
@@ -16,7 +16,7 @@ if (!window.customCards.find(c => c.type === 'smart-timer-card')) {
   });
 }
 
-const CARD_VERSION = '2.4.8';
+const CARD_VERSION = '2.4.9';
 
 class SmartTimerCard extends HTMLElement {
   setConfig(config) {

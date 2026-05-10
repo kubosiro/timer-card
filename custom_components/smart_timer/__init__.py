@@ -24,7 +24,7 @@ def websocket_get_version(hass, connection, msg):
     import json
     import os
     manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-    version = "2.4.8"
+    version = "2.4.9"
     try:
         with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
@@ -179,7 +179,7 @@ async def _async_register_resource(hass: HomeAssistant):
     import json
     import os
     manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-    version = "2.4.8"
+    version = "2.4.9"
     try:
         with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
@@ -204,16 +204,6 @@ async def _async_register_resource(hass: HomeAssistant):
                 return
 
             items = await resources.async_items()
-            
-            # Dọn dẹp resource cũ (simple-timer) nếu có để tránh xung đột
-            old_resource = next((res for res in items if "/local/simple-timer/" in res.get("url", "")), None)
-            if old_resource:
-                _LOGGER.info("Cleaning up old conflicting simple-timer resource: %s", old_resource.get("url"))
-                await resources.async_delete_item(old_resource["id"])
-                
-            # Cập nhật items list sau khi xóa
-            items = await resources.async_items()
-            
             existing = next((res for res in items if res.get("url", "").startswith(base_url)), None)
 
             if existing:

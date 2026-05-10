@@ -40,7 +40,7 @@ class SmartTimerSensor(SensorEntity):
             "name": self._entry.title,
             "manufacturer": "Antigravity Pro",
             "model": "Smart Timer Entity",
-            "sw_version": "2.4.8",
+            "sw_version": "2.4.9",
         }
 
     @property
