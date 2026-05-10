@@ -3,12 +3,12 @@
  * A premium timer card for Home Assistant
  */
 
-console.log("%c ⏱️ SMART TIMER CARD: v2.4.9 LOADED ", "background: #2196f3; color: white; font-weight: bold; padding: 4px; border-radius: 4px;");
+console.log("%c ⏱️ SMART TIMER CARD: v2.5.0 LOADED ", "background: #2196f3; color: white; font-weight: bold; padding: 4px; border-radius: 4px;");
 
 window.customCards = window.customCards || [];
-if (!window.customCards.find(c => c.type === 'smart-timer-card')) {
+if (!window.customCards.find(c => c.type === 'antigravity-smart-timer-card')) {
   window.customCards.push({
-    type: 'smart-timer-card',
+    type: 'antigravity-smart-timer-card',
     name: 'Smart Timer Card (Pro)',
     description: 'Hẹn giờ thông minh cho mọi thiết bị, giao diện hiện đại.',
     preview: true,
@@ -16,7 +16,7 @@ if (!window.customCards.find(c => c.type === 'smart-timer-card')) {
   });
 }
 
-const CARD_VERSION = '2.4.9';
+const CARD_VERSION = '2.5.0';
 
 class SmartTimerCard extends HTMLElement {
   setConfig(config) {
@@ -35,7 +35,7 @@ class SmartTimerCard extends HTMLElement {
   }
 
   static getConfigElement() {
-    return document.createElement("smart-timer-card-editor");
+    return document.createElement("antigravity-smart-timer-card-editor");
   }
 
   constructor() {
@@ -434,7 +434,7 @@ class SmartTimerCard extends HTMLElement {
   }
 }
 
-customElements.define('smart-timer-card', SmartTimerCard);
+customElements.define('antigravity-smart-timer-card', SmartTimerCard);
 
 class SmartTimerCardEditor extends HTMLElement {
   constructor() {
@@ -535,6 +535,6 @@ class SmartTimerCardEditor extends HTMLElement {
   }
 }
 
-customElements.define('smart-timer-card-editor', SmartTimerCardEditor);
+customElements.define('antigravity-smart-timer-card-editor', SmartTimerCardEditor);
 
 console.log("%c ⏱️ SMART TIMER CARD LOADED ", "background: #2196f3; color: white; font-weight: bold; padding: 4px; border-radius: 4px;");
