@@ -156,16 +156,26 @@ async def _async_register_resource(hass):
     _LOGGER.debug("Attempting to register Lovelace resource: %s", url)
     
     try:
-        # Get the resources from the correct location for the current HA version
         resources = None
+        # Try different locations for resources based on HA version
         if "lovelace" in hass.data:
-            resources = hass.data["lovelace"].get("resources")
+            ll_data = hass.data["lovelace"]
+            if "resources" in ll_data:
+                resources = ll_data["resources"]
+            elif "dashboards" in ll_data:
+                # Some versions store it under dashboards
+                for db in ll_data["dashboards"].values():
+                    if hasattr(db, "resources"):
+                        resources = db.resources
+                        break
         
         if resources:
             # Check if it's already there
             exists = False
+            # If it's a Collection, it has async_items
             if hasattr(resources, "async_items"):
-                for res in resources.async_items():
+                items = await resources.async_items()
+                for res in items:
                     if res.get("url") == url:
                         exists = True
                         break
@@ -175,8 +185,8 @@ async def _async_register_resource(hass):
                     await resources.async_create_item({"res_type": "module", "url": url})
                     _LOGGER.info("Registered Lovelace resource: %s", url)
                 else:
-                    _LOGGER.warning("Lovelace resources found but 'async_create_item' is missing. Manual registration required.")
+                    _LOGGER.warning("Lovelace resources found but 'async_create_item' is missing.")
         else:
-            _LOGGER.debug("Lovelace resources not found in hass.data. This is normal in YAML mode or early startup.")
+            _LOGGER.debug("Lovelace resources collection not found. This is normal in YAML mode.")
     except Exception as e:
         _LOGGER.error("Error auto-registering Lovelace resource: %s", e)

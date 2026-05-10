@@ -236,6 +236,15 @@ class SmartTimerCard extends HTMLElement {
     this._update();
   }
 
+  connectedCallback() {
+    // Tự động cập nhật mỗi 10 giây để đếm ngược chạy mượt
+    this._timer = setInterval(() => this._update(), 10000);
+  }
+
+  disconnectedCallback() {
+    if (this._timer) clearInterval(this._timer);
+  }
+
   setConfig(config) {
     if (!config.entity) {
       throw new Error('Please define an entity');
@@ -341,18 +350,28 @@ class SmartTimerCard extends HTMLElement {
   }
 
   _bindEvents(entityId, currentRemaining) {
-    // Khu vực Icon/Text: Chỉ Bật/Tắt thiết bị
-    this.shadowRoot.querySelector('#toggle').onclick = () => {
-      this._hass.callService('homeassistant', 'toggle', { entity_id: entityId });
-    };
+    const root = this.shadowRoot;
+    
+    // Nút Icon/Text chính
+    const toggleEl = root.querySelector('#toggle');
+    if (toggleEl) {
+      toggleEl.onclick = () => {
+        this._hass.callService('homeassistant', 'toggle', { entity_id: entityId });
+      };
+    }
 
-    // Nút tròn ở giữa: Chỉ Clear Countdown
-    this.shadowRoot.querySelector('#clear').onclick = (e) => {
-      e.stopPropagation();
-      this._callTimerSet(entityId, 0);
-    };
+    // Nút tròn ở giữa: Clear Countdown
+    const clearEl = root.querySelector('#clear');
+    if (clearEl) {
+      clearEl.onclick = (e) => {
+        e.stopPropagation();
+        console.log("Smart Timer: Clear clicked for " + entityId);
+        this._callTimerSet(entityId, 0);
+      };
+    }
 
-    this.shadowRoot.querySelectorAll('.btn[data-val]').forEach(btn => {
+    // Các nút +/-
+    root.querySelectorAll('.btn[data-val]').forEach(btn => {
       btn.onclick = (e) => {
         e.stopPropagation();
         const val = parseInt(btn.dataset.val);
@@ -361,7 +380,8 @@ class SmartTimerCard extends HTMLElement {
       };
     });
 
-    this.shadowRoot.querySelectorAll('.preset').forEach(btn => {
+    // Các nút Preset
+    root.querySelectorAll('.preset').forEach(btn => {
       btn.onclick = (e) => {
         e.stopPropagation();
         const val = parseInt(btn.dataset.preset);
