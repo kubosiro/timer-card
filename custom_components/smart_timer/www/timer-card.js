@@ -394,60 +394,52 @@ class SmartTimerCardEditor extends HTMLElement {
     if (!this.shadowRoot) return;
     this.shadowRoot.innerHTML = `
       <style>
-        .card-config {
-          padding: 16px;
-        }
-        .option {
-          margin-bottom: 16px;
-          display: flex;
-          flex-direction: column;
-        }
-        label {
-          font-weight: bold;
-          margin-bottom: 8px;
-          font-size: 14px;
-        }
-        input, select {
-          padding: 10px;
-          border-radius: 8px;
-          border: 1px solid var(--divider-color, #e0e0e0);
-          background: var(--card-background-color, white);
-          color: var(--primary-text-color, black);
-        }
-        .help {
-          font-size: 12px;
-          color: var(--secondary-text-color, gray);
-          margin-top: 4px;
-        }
+        .card-config { padding: 4px; }
+        .option { margin-bottom: 20px; display: flex; flex-direction: column; }
+        label { font-weight: bold; margin-bottom: 10px; font-size: 14px; color: var(--primary-text-color); display: block; }
+        .help { font-size: 12px; color: var(--secondary-text-color); margin-top: 6px; }
+        ha-entity-picker, ha-icon-picker, ha-textfield { width: 100%; display: block; }
       </style>
       <div class="card-config">
         <div class="option">
-          <label>Entity (Switch/Light/Fan)</label>
-          <input id="entity" type="text" value="${this._config.entity || ''}" placeholder="switch.your_device">
-          <div class="help">Thực thể mà bạn muốn điều khiển hẹn giờ.</div>
+          <label>Chọn thực thể điều khiển</label>
+          <ha-entity-picker
+            .hass=${this._hass}
+            .value=${this._config.entity}
+            .includeDomains=${['switch', 'light', 'fan']}
+            @value-changed=${(ev) => this._fieldChanged(ev, 'entity')}
+            allow-custom-entity
+          ></ha-entity-picker>
+          <div class="help">Hỗ trợ các thiết bị loại Switch, Light hoặc Fan.</div>
         </div>
+        
         <div class="option">
-          <label>Friendly Name</label>
-          <input id="name" type="text" value="${this._config.name || ''}" placeholder="Tên thiết bị">
+          <label>Tên hiển thị trên Card</label>
+          <ha-textfield
+            .value=${this._config.name || ''}
+            @input=${(ev) => this._fieldChanged(ev, 'name')}
+            placeholder="Ví dụ: Quạt treo tường"
+          ></ha-textfield>
         </div>
+
         <div class="option">
-          <label>Icon (Optional)</label>
-          <input id="icon" type="text" value="${this._config.icon || ''}" placeholder="mdi:fan">
+          <label>Biểu tượng (Icon)</label>
+          <ha-icon-picker
+            .hass=${this._hass}
+            .value=${this._config.icon}
+            @value-changed=${(ev) => this._fieldChanged(ev, 'icon')}
+          ></ha-icon-picker>
         </div>
       </div>
     `;
-
-    this.shadowRoot.querySelectorAll('input').forEach(input => {
-      input.onchange = (e) => this._valueChanged(e);
-    });
   }
 
-  _valueChanged(ev) {
+  _fieldChanged(ev, field) {
     if (!this._config) return;
-    const target = ev.target;
-    const value = target.value;
-    const newConfig = { ...this._config, [target.id]: value };
-    
+    const value = ev.detail ? ev.detail.value : ev.target.value;
+    if (this._config[field] === value) return;
+
+    const newConfig = { ...this._config, [field]: value };
     const event = new CustomEvent("config-changed", {
       detail: { config: newConfig },
       bubbles: true,
