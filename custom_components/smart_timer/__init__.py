@@ -150,12 +150,15 @@ async def async_unload_entry(hass: HomeAssistant, entry):
     unload_ok = await hass.config_entries.async_unload_platforms(entry, ["sensor"])
     return unload_ok
 
-async def _async_register_resource(hass):
-    """Register the Lovelace resource automatically."""
+async def _async_register_resource(hass: HomeAssistant):
+    """Register the Lovelace resource automatically with maximum robustness."""
+    from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
+    
+    # URL và Version
     import json
     import os
     manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-    version = "2.4.4"
+    version = "2.4.5"
     try:
         with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
@@ -164,35 +167,39 @@ async def _async_register_resource(hass):
         pass
         
     url = f"/smart_timer/static/timer-card.js?v={version}"
-    _LOGGER.debug("Registering Lovelace resource: %s", url)
-    
-    try:
-        lovelace = hass.data.get("lovelace")
-        if not lovelace or not hasattr(lovelace, "resources"):
-            _LOGGER.debug("Lovelace storage not found, skipping auto-registration.")
-            return
+    base_url = "/smart_timer/static/timer-card.js"
 
-        resources = lovelace.resources
-        if not hasattr(resources, "async_items") or not hasattr(resources, "async_create_item"):
-            _LOGGER.debug("Lovelace resources collection is not manageable.")
-            return
+    async def _do_register(event=None):
+        _LOGGER.debug("Starting robust Lovelace resource registration...")
+        try:
+            lovelace = hass.data.get("lovelace")
+            if not lovelace:
+                _LOGGER.debug("Lovelace not in hass.data. Skipping.")
+                return
 
-        # Check if already registered (ignoring version query)
-        items = await resources.async_items()
-        base_url = "/smart_timer/static/timer-card.js"
-        existing_resource = next((res for res in items if res.get("url", "").startswith(base_url)), None)
+            resources = getattr(lovelace, "resources", None)
+            if not resources or not hasattr(resources, "async_items"):
+                _LOGGER.debug("Lovelace resources not manageable via API.")
+                return
 
-        if existing_resource:
-            if existing_resource.get("url") != url:
-                _LOGGER.debug("Updating Lovelace resource version to %s", version)
-                if hasattr(resources, "async_update_item"):
-                    await resources.async_update_item(existing_resource["id"], {"url": url})
-        else:
-            _LOGGER.info("Adding new Lovelace resource: %s", url)
-            await resources.async_create_item({
-                "res_type": "module", 
-                "url": url
-            })
-            
-    except Exception as e:
-        _LOGGER.error("Error auto-registering Lovelace resource: %s", e)
+            items = await resources.async_items()
+            existing = next((res for res in items if res.get("url", "").startswith(base_url)), None)
+
+            if existing:
+                if existing.get("url") != url:
+                    _LOGGER.info("Updating existing Lovelace resource to version %s", version)
+                    await resources.async_update_item(existing["id"], {"url": url})
+            else:
+                _LOGGER.info("Creating new Lovelace resource for Smart Timer Card.")
+                await resources.async_create_item({
+                    "res_type": "module",
+                    "url": url
+                })
+        except Exception as e:
+            _LOGGER.error("Failed to auto-register Lovelace resource: %s", e)
+
+    # Nếu HA đã start rồi thì chạy luôn, nếu chưa thì đợi event
+    if hass.is_running:
+        await _do_register()
+    else:
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _do_register)
