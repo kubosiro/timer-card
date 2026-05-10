@@ -182,7 +182,7 @@ async def _async_register_resource(hass):
             
             if not exists:
                 if hasattr(resources, "async_create_item"):
-                    await resources.async_create_item({"res_type": "module", "url": url})
+                    await resources.async_create_item({"type": "module", "url": url})
                     _LOGGER.info("Registered Lovelace resource: %s", url)
                 else:
                     _LOGGER.warning("Lovelace resources found but 'async_create_item' is missing.")
