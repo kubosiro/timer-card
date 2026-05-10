@@ -23,7 +23,10 @@ class SmartTimerCard extends HTMLElement {
     if (!config.entity) {
       throw new Error("Please define an entity");
     }
-    this._config = config;
+    this.config = config;
+    // Reset state guard on config change
+    this._oldState = null;
+    this._oldTimerInfo = null;
   }
 
   static getStubConfig() {
@@ -43,6 +46,8 @@ class SmartTimerCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this._versionChecked = false;
     this._backendVersion = null;
+    this._oldState = null;
+    this._oldTimerInfo = null;
   }
 
   set hass(hass) {
@@ -277,13 +282,6 @@ class SmartTimerCard extends HTMLElement {
     if (this._timer) clearInterval(this._timer);
   }
 
-  setConfig(config) {
-    if (!config.entity) {
-      throw new Error('Please define an entity');
-    }
-    this.config = config;
-  }
-
   _update() {
     if (!this._hass || !this.config) return;
 
@@ -297,6 +295,12 @@ class SmartTimerCard extends HTMLElement {
     const masterSensor = this._hass.states['sensor.smart_timer_master'];
     const timers = (masterSensor && masterSensor.attributes.timers) || {};
     const timerInfo = timers[entityId];
+
+    // State-Guard: Only render if data actually changed
+    const currentTimerInfo = JSON.stringify(timerInfo || {});
+    if (stateObj.state === this._oldState && currentTimerInfo === this._oldTimerInfo) {
+      return;
+    }
 
     const isOn = stateObj.state === 'on';
     const name = this.config.name || stateObj.attributes.friendly_name || entityId;
@@ -323,6 +327,10 @@ class SmartTimerCard extends HTMLElement {
     } else if (isOn) {
       secondaryText = '✅ Đang bật · Không hẹn giờ';
     }
+
+    // Save state for next comparison
+    this._oldState = stateObj.state;
+    this._oldTimerInfo = currentTimerInfo;
 
     this.content.innerHTML = `
       <div class="main-info" id="toggle">
