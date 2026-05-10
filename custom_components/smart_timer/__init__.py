@@ -152,41 +152,47 @@ async def async_unload_entry(hass: HomeAssistant, entry):
 
 async def _async_register_resource(hass):
     """Register the Lovelace resource automatically."""
-    url = "/smart_timer/static/timer-card.js"
-    _LOGGER.debug("Attempting to register Lovelace resource: %s", url)
+    import json
+    import os
+    manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
+    version = "2.4.4"
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+            version = manifest.get("version", version)
+    except:
+        pass
+        
+    url = f"/smart_timer/static/timer-card.js?v={version}"
+    _LOGGER.debug("Registering Lovelace resource: %s", url)
     
     try:
-        resources = None
-        # Try different locations for resources based on HA version
-        if "lovelace" in hass.data:
-            ll_data = hass.data["lovelace"]
-            if "resources" in ll_data:
-                resources = ll_data["resources"]
-            elif "dashboards" in ll_data:
-                # Some versions store it under dashboards
-                for db in ll_data["dashboards"].values():
-                    if hasattr(db, "resources"):
-                        resources = db.resources
-                        break
-        
-        if resources:
-            # Check if it's already there
-            exists = False
-            # If it's a Collection, it has async_items
-            if hasattr(resources, "async_items"):
-                items = await resources.async_items()
-                for res in items:
-                    if res.get("url") == url:
-                        exists = True
-                        break
-            
-            if not exists:
-                if hasattr(resources, "async_create_item"):
-                    await resources.async_create_item({"type": "module", "url": url})
-                    _LOGGER.info("Registered Lovelace resource: %s", url)
-                else:
-                    _LOGGER.warning("Lovelace resources found but 'async_create_item' is missing.")
+        lovelace = hass.data.get("lovelace")
+        if not lovelace or not hasattr(lovelace, "resources"):
+            _LOGGER.debug("Lovelace storage not found, skipping auto-registration.")
+            return
+
+        resources = lovelace.resources
+        if not hasattr(resources, "async_items") or not hasattr(resources, "async_create_item"):
+            _LOGGER.debug("Lovelace resources collection is not manageable.")
+            return
+
+        # Check if already registered (ignoring version query)
+        items = await resources.async_items()
+        base_url = "/smart_timer/static/timer-card.js"
+        existing_resource = next((res for res in items if res.get("url", "").startswith(base_url)), None)
+
+        if existing_resource:
+            if existing_resource.get("url") != url:
+                _LOGGER.debug("Updating Lovelace resource version to %s", version)
+                if hasattr(resources, "async_update_item"):
+                    await resources.async_update_item(existing_resource["id"], {"url": url})
         else:
-            _LOGGER.debug("Lovelace resources collection not found. This is normal in YAML mode.")
+            _LOGGER.info("Adding new Lovelace resource: %s", url)
+            await resources.async_create_item({
+                "res_type": "module", 
+                "url": url
+            })
+            
     except Exception as e:
         _LOGGER.error("Error auto-registering Lovelace resource: %s", e)

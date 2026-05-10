@@ -3,9 +3,9 @@
   "name": "Smart Timer",
   "documentation": "https://github.com/kubosiro/timer-card",
   "requirements": [],
-  "dependencies": [],
+  "dependencies": ["frontend", "http"],
   "codeowners": ["@antigravity"],
-  "version": "2.4.3",
+  "version": "2.4.4",
   "config_flow": true,
   "iot_class": "local_push",
   "integration_type": "service"
