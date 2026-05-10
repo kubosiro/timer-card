@@ -1,18 +1,37 @@
 import logging
 import voluptuous as vol
 from datetime import timedelta
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.util import dt as dt_util
 from homeassistant.helpers.discovery import async_load_platform
 from homeassistant.components.http import StaticPathConfig
+from homeassistant.components import websocket_api
 
 _LOGGER = logging.getLogger(__name__)
 DOMAIN = "smart_timer"
 STORAGE_KEY = "smart_timer.active_timers"
 STORAGE_VERSION = 1
+
+@websocket_api.websocket_command({
+    vol.Required("type"): "smart_timer/version",
+})
+@callback
+def websocket_get_version(hass, connection, msg):
+    """Return the version of the integration."""
+    import json
+    import os
+    manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
+    version = "2.4.6"
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+            version = manifest.get("version", version)
+    except:
+        pass
+    connection.send_result(msg["id"], {"version": version})
 
 SERVICE_SET_SCHEMA = vol.Schema({
     vol.Required("entity_id"): cv.entity_id,
@@ -25,6 +44,8 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass: HomeAssistant, entry):
     """Set up Smart Timer from a config entry."""
+    websocket_api.async_register_command(hass, websocket_get_version)
+    
     if DOMAIN not in hass.data:
         hass.data[DOMAIN] = {
             "active_timers": {},
@@ -158,7 +179,7 @@ async def _async_register_resource(hass: HomeAssistant):
     import json
     import os
     manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-    version = "2.4.5"
+    version = "2.4.6"
     try:
         with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)

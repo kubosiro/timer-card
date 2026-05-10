@@ -3,7 +3,7 @@
  * A premium timer card for Home Assistant
  */
 
-console.log("%c ⏱️ SMART TIMER CARD: v2.4.5 LOADED ", "background: #2196f3; color: white; font-weight: bold; padding: 4px; border-radius: 4px;");
+console.log("%c ⏱️ SMART TIMER CARD: v2.4.6 LOADED ", "background: #2196f3; color: white; font-weight: bold; padding: 4px; border-radius: 4px;");
 
 window.customCards = window.customCards || [];
 if (!window.customCards.find(c => c.type === 'smart-timer-card')) {
@@ -15,6 +15,8 @@ if (!window.customCards.find(c => c.type === 'smart-timer-card')) {
     documentationURL: 'https://github.com/kubosiro/timer-card',
   });
 }
+
+const CARD_VERSION = '2.4.6';
 
 class SmartTimerCard extends HTMLElement {
   setConfig(config) {
@@ -39,6 +41,8 @@ class SmartTimerCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    this._versionChecked = false;
+    this._backendVersion = null;
   }
 
   set hass(hass) {
@@ -207,10 +211,17 @@ class SmartTimerCard extends HTMLElement {
             transform: scale(0.96);
             background: rgba(255,255,255,0.12);
           }
-          .icon-container:active {
-            transform: scale(0.92);
+          
+          .version-warning {
+            background: #ff9800;
+            color: black;
+            font-size: 10px;
+            padding: 4px;
+            text-align: center;
+            font-weight: bold;
+            cursor: pointer;
           }
-    
+
           @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -230,17 +241,36 @@ class SmartTimerCard extends HTMLElement {
         </style>
         <ha-card>
           <div class="glass-overlay"></div>
+          <div class="version-banner"></div>
           <div class="card-content"></div>
         </ha-card>
       `;
       this.content = this.shadowRoot.querySelector('.card-content');
+      this.banner = this.shadowRoot.querySelector('.version-banner');
     }
     this._update();
   }
 
   connectedCallback() {
-    // Tự động cập nhật mỗi 10 giây để đếm ngược chạy mượt
     this._timer = setInterval(() => this._update(), 10000);
+    this._checkVersion();
+  }
+
+  async _checkVersion() {
+    if (this._versionChecked || !this._hass) return;
+    try {
+      const result = await this._hass.connection.sendMessagePromise({
+        type: "smart_timer/version",
+      });
+      this._backendVersion = result.version;
+      this._versionChecked = true;
+      if (this._backendVersion !== CARD_VERSION) {
+        console.warn(`[Smart Timer] Version mismatch! Backend: ${this._backendVersion}, Frontend: ${CARD_VERSION}`);
+        this.banner.innerHTML = `<div class="version-warning" onclick="location.reload(true)">⚠️ Cache cũ (v${CARD_VERSION}) - Hãy bấm để tải lại v${this._backendVersion}</div>`;
+      }
+    } catch (e) {
+      console.error("[Smart Timer] Failed to check version", e);
+    }
   }
 
   disconnectedCallback() {
