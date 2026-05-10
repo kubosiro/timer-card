@@ -415,7 +415,21 @@ class SmartTimerCardEditor extends HTMLElement {
         .option { margin-bottom: 20px; display: flex; flex-direction: column; }
         label { font-weight: bold; margin-bottom: 10px; font-size: 14px; color: var(--primary-text-color); display: block; }
         .help { font-size: 12px; color: var(--secondary-text-color); margin-top: 6px; }
-        ha-entity-picker, ha-icon-picker, ha-textfield { width: 100%; display: block; }
+        ha-entity-picker, ha-icon-picker { width: 100%; display: block; }
+        .ha-input {
+          width: 100%;
+          padding: 12px;
+          border-radius: 4px;
+          border: 1px solid var(--divider-color, #444);
+          background: var(--card-background-color, #2c2c2c);
+          color: var(--primary-text-color, white);
+          box-sizing: border-box;
+          font-size: 14px;
+        }
+        .ha-input:focus {
+          outline: none;
+          border-color: var(--primary-color, #03a9f4);
+        }
       </style>
       <div class="card-config">
         <div class="option">
@@ -426,7 +440,7 @@ class SmartTimerCardEditor extends HTMLElement {
         
         <div class="option">
           <label>Tên hiển thị trên Card</label>
-          <ha-textfield id="name-input" label="Tên thiết bị" placeholder="Ví dụ: Quạt treo tường"></ha-textfield>
+          <input type="text" id="name-input" class="ha-input" placeholder="Ví dụ: Quạt treo tường">
         </div>
 
         <div class="option">
