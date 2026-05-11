@@ -1,48 +1,86 @@
-# ⏱️ Smart Timer Pro
+# Smart Timer Card for Home Assistant
 
-A premium, "Plug and Play" timer integration and card for Home Assistant. No more messy helper variables or complex automations—just simple, beautiful timing for any device.
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-## ✨ Features
-- **Zero Configuration**: No `input_number`, `timer`, or `input_boolean` helpers required.
-- **Multi-Device Support**: Configure separate timers for every switch, light, or fan in your home.
-- **Dedicated Sensors**: Automatically generates a virtual timer sensor for each device (e.g., `sensor.living_room_fan_timer`).
-- **Persistence**: Timers are saved and will resume automatically after a Home Assistant restart.
-- **Premium UI Card**: A stunning Lovelace card with glassmorphism, animations, and quick presets.
-- **Auto-Discovery**: Lovelace resources are registered automatically upon installation.
+⏱️ **Premium glassmorphism countdown timer card** — hẹn giờ thông minh cho mọi thiết bị Home Assistant.
 
-## 🚀 Installation
+![Smart Timer Card](https://img.shields.io/badge/version-6.0.0-blue)
 
-### via HACS (Recommended)
-1. Open **HACS** -> **Integrations**.
-2. Click the three dots in the top right -> **Custom repositories**.
-3. Add `https://github.com/kubosiro/timer-card` with category **Integration**.
-4. Click **Download** and restart Home Assistant.
+## ✨ Tính năng
 
-### via UI (Config Flow)
-1. Go to **Settings** -> **Devices & Services**.
-2. Click **Add Integration** and search for **Smart Timer**.
-3. Select the physical device you want to control and give it a name.
-4. Repeat for as many devices as you need!
+- 🎛️ **Hẹn giờ cho mọi thiết bị** — switch, light, fan, input_boolean
+- ⏱️ **Countdown hiển thị giây** — `1h 5m 30s`
+- 💾 **Bền vững qua restart HA** — lưu timer vào `input_text` helper
+- 🔘 **Nút +/-** điều chỉnh thời gian linh hoạt
+- 🎯 **Presets** — 1h, 2h, 4h, 6h, 8h
+- 🎨 **Glassmorphism UI** — tự động thích ứng với theme HA
+- 🧹 **Không rác** — xóa card là sạch hoàn toàn
+- 🌐 **VI/EN** — giao diện tiếng Việt
 
-## 🎨 Dashboard Configuration
-Add the custom card to your dashboard:
+## 📥 Cài đặt
 
-```yaml
-type: custom:smart-timer-card
-entity: switch.your_device
-name: "My Smart Timer"
-icon: mdi:fan # Optional
+### Qua HACS (khuyến nghị)
+
+1. Mở HACS → **Frontend** → **⋮ Menu** → **Custom repositories**
+2. Điền URL: `https://github.com/kubosiro/timer-card` → Category: **Lovelace**
+3. Tìm **Smart Timer Card** → **Download**
+4. **Clear cache trình duyệt** (Ctrl+Shift+R)
+
+### Thủ công
+
+1. Tải file [`timer-card.js`](https://raw.githubusercontent.com/kubosiro/timer-card/main/timer-card.js)
+2. Copy vào thư mục `config/www/` của HA
+3. Vào **Settings → Dashboards → Resources → Add Resource**:
+   ```
+   URL: /local/timer-card.js?v=6.0.0
+   Type: JavaScript Module
+   ```
+
+## ⚙️ Cấu hình persistence (bền vững qua restart)
+
+Để timer không mất khi restart HA:
+
+1. Tạo 1 helper `input_text`:
+   - **Settings → Devices & Services → Helpers → Create Helper → Text**
+   - Name: `Smart Timer Data`
+   - Max length: `2048`
+   - **Chỉ cần tạo 1 lần dùng cho mọi card!**
+
+2. Khi thêm card, chọn helper vừa tạo ở mục **"Lưu trữ bền vững"**
+
+3. Badge `💾` trên card = persistence đang hoạt động
+
+> ⚠️ Nếu không chọn helper, timer vẫn chạy bình thường nhưng sẽ mất khi refresh/restart HA.
+
+## 🎮 Sử dụng
+
+| Nút | Chức năng |
+|-----|-----------|
+| **Icon/Text** | Bật/tắt thiết bị |
+| **-30 / -5 / -1** | Giảm thời gian |
+| **+1 / +5 / +30** | Tăng thời gian |
+| **Clear (nút tròn)** | Hủy hẹn giờ |
+| **1h/2h/4h/6h/8h** | Hẹn giờ nhanh |
+
+## 🏗️ Cấu trúc dự án
+
+```
+timer-card/
+├── timer-card.js    ← Card chính (vanilla JS, 27KB)
+├── hacs.json        ← HACS metadata
+├── README.md        ← Tài liệu này
+└── LICENSE          ← MIT
 ```
 
-## 🛠️ Services
-You can also set timers via service calls in your automations:
+- **Không backend Python** — chỉ 1 file JS
+- **Không cần restart HA** để cài đặt
+- **Không helper bắt buộc** — persistence là tùy chọn
 
-```yaml
-service: smart_timer.set
-data:
-  entity_id: switch.your_device
-  duration: 30 # Minutes (0 to clear)
-```
+## 📝 Requirements
 
----
-*Created with ❤️ for the Home Assistant Community.*
+- Home Assistant 2023.5+
+- Trình duyệt hiện đại (Chrome/Firefox/Edge/Safari)
+
+## 📄 License
+
+MIT © 2025 kubosiro

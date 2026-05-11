@@ -1,7 +1,6 @@
 {
-  "name": "Smart Timer",
-  "content_type": "integration",
-  "domains": ["smart_timer"],
-  "iot_class": "local_push",
-  "render_readme": true
+    "content_type": "lovelace",
+    "filename": "timer-card.js",
+    "name": "Smart Timer Card",
+    "render_readme": true
 }
