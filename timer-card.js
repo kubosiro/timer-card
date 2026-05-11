@@ -507,7 +507,7 @@ class SmartTimerCard extends HTMLElement {
 
         if (!stateObj) {
             this._primaryText.textContent = entityId || '?';
-            this._secondaryText.textContent = '⚠️ Entity not found';
+            this._secondaryText.textContent = '⚠️ Không tìm thấy thiết bị';
             return;
         }
 
@@ -548,7 +548,7 @@ class SmartTimerCard extends HTMLElement {
 
         let secText;
         if (!isOn) {
-            secText = '⛔ OFF';
+            secText = '⛔ TẮT';
         } else if (hasTimer && remaining > 0) {
             const totalSec = Math.ceil((this._endTime - now) / 1000);
             const h = Math.floor(totalSec / 3600);
@@ -563,7 +563,7 @@ class SmartTimerCard extends HTMLElement {
         } else if (hasTimer) {
             secText = '⏱️ Đang tắt...';
         } else {
-            secText = '✅ ON · Không hẹn giờ';
+            secText = '✅ BẬT · Không hẹn giờ';
         }
 
         this._secondaryText.textContent = secText;
