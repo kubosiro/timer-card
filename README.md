@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-⏱️ **Unified Standalone Version (v6.0.0)** — Phiên bản duy nhất, mạnh mẽ và tinh gọn nhất cho Home Assistant.
+⏱️ **Unified Standalone Version
 
 ![Smart Timer Card](https://img.shields.io/badge/version-6.0.0-blue)
 
